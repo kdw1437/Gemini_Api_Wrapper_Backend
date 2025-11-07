@@ -22,6 +22,7 @@ public class AuthService {
     private final UserMapper userMapper;
     private final PasswordResetTokenMapper tokenMapper;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
     /**
      * 회원가입
@@ -95,27 +96,27 @@ public class AuthService {
         PasswordResetToken token = PasswordResetToken.builder()
                 .userId(user.getId())
                 .token(resetToken)
-                .expiresAt(LocalDateTime.now().plusHours(6)) // 6시간 유효
+                .expiresAt(LocalDateTime.now().plusHours(6))
                 .used(false)
                 .build();
 
         tokenMapper.insert(token);
 
-        // 4. 재설정 링크 생성
-        String resetLink = "http://localhost:3000/reset-password?token=" + resetToken;
-
-        // 5. 이메일 전송 (지금은 콘솔에 출력)
-        System.out.println("\n" + "=".repeat(70));
-        System.out.println("📧 비밀번호 재설정 이메일");
-        System.out.println("받는 사람: " + request.getEmail());
-        System.out.println("재설정 링크: " + resetLink);
-        System.out.println("만료 시간: " + token.getExpiresAt());
-        System.out.println("=".repeat(70) + "\n");
-
-        // TODO: 실제 이메일 전송 구현 (나중에)
-        // emailService.sendPasswordResetEmail(user.getUsername(), resetLink);
-
-        return new MessageResponse("비밀번호 재설정 링크가 이메일로 전송되었습니다 (현재는 콘솔에 출력됩니다)");
+        // 4. 이메일 전송 (UPDATED - no longer prints to console)
+        try {
+            emailService.sendPasswordResetEmail(user.getUsername(), resetToken);
+            return new MessageResponse("비밀번호 재설정 링크가 이메일로 전송되었습니다.");
+        } catch (Exception e) {
+            System.err.println("이메일 전송 실패: " + e.getMessage());
+            // 디버깅용으로 콘솔에도 출력
+            String resetLink = "http://localhost:3000/reset-password?token=" + resetToken;
+            System.out.println("\n" + "=".repeat(70));
+            System.out.println("📧 이메일 전송 실패 - 디버깅용 링크:");
+            System.out.println("받는 사람: " + request.getEmail());
+            System.out.println("재설정 링크: " + resetLink);
+            System.out.println("=".repeat(70) + "\n");
+            throw new RuntimeException("이메일 전송에 실패했습니다. 잠시 후 다시 시도해주세요.");
+        }
     }
 
     /**
