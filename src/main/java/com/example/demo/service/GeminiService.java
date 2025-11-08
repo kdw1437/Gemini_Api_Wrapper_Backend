@@ -15,9 +15,9 @@ public class GeminiService {
     private final RestTemplate restTemplate;
 
     /**
-     * Call Python microservice to get Gemini API response
+     * Call Python microservice to get Gemini API response with token usage
      */
-    public String getModelResponse(String userMessage) {
+    public GeminiResponse getModelResponse(String userMessage) {
         try {
             String pythonServiceUrl = geminiProperties.getPythonService().getUrl();
 
@@ -33,7 +33,11 @@ public class GeminiService {
                     GeminiResponse.class);
 
             if (response != null && response.getModelResponse() != null) {
-                return response.getModelResponse();
+                System.out.println("✅ Gemini Response: " + response.getModelResponse());
+                System.out.println("📊 Token Usage - Prompt: " + response.getPromptTokenCount()
+                        + ", Response: " + response.getCandidatesTokenCount()
+                        + ", Total: " + response.getTotalTokenCount());
+                return response;
             } else {
                 throw new RuntimeException("Python 서비스로부터 응답을 받지 못했습니다");
             }

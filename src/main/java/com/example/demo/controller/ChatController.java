@@ -2,14 +2,18 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.request.ChatRequest;
 import com.example.demo.dto.response.ConversationResponse;
+import com.example.demo.model.UserApiUsage;
 import com.example.demo.dto.response.ChatMessageResponse; // CHANGED
 import com.example.demo.service.ChatService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.example.demo.service.UserApiUsageService;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/chat")
@@ -17,6 +21,7 @@ import java.util.List;
 public class ChatController {
 
     private final ChatService chatService;
+    private final UserApiUsageService usageService;
 
     @PostMapping("/conversations")
     public ResponseEntity<ConversationResponse> createConversation(
@@ -51,5 +56,29 @@ public class ChatController {
             @PathVariable Long conversationId) {
         chatService.deleteConversation(userId, conversationId);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Get user's API usage for today
+     * GET /api/chat/usage
+     */
+    @GetMapping("/usage")
+    public ResponseEntity<Map<String, Object>> getUsage(
+            @RequestHeader("X-User-Id") Long userId) {
+
+        UserApiUsage todayUsage = usageService.getTodayUsage(userId);
+        long remainingTokens = usageService.getRemainingTokens(userId);
+        int remainingMessages = usageService.getRemainingMessages(userId);
+
+        Map<String, Object> usage = new HashMap<>();
+        usage.put("date", todayUsage.getUsageDate());
+        usage.put("messagesUsed", todayUsage.getMessageCount());
+        usage.put("tokensUsed", todayUsage.getTokenCount());
+        usage.put("remainingMessages", remainingMessages);
+        usage.put("remainingTokens", remainingTokens);
+        usage.put("dailyMessageLimit", 1000);
+        usage.put("dailyTokenLimit", 100000);
+
+        return ResponseEntity.ok(usage);
     }
 }

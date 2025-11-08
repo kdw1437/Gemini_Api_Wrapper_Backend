@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.demo.mapper.UserApiUsageMapper">
+
+    <resultMap id="UserApiUsageResultMap" type="com.example.demo.model.UserApiUsage">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="usageDate" column="usage_date"/>
+        <result property="messageCount" column="message_count"/>
+        <result property="tokenCount" column="token_count"/>
+    </resultMap>
+
+    <!-- 특정 사용자의 특정 날짜 사용량 조회 -->
+    <select id="findByUserIdAndDate" resultMap="UserApiUsageResultMap">
+        SELECT id, user_id, usage_date, message_count, token_count
+        FROM user_api_usage
+        WHERE user_id = #{userId}
+          AND usage_date = #{usageDate}
+    </select>
+
+    <!-- 새 사용량 레코드 생성 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_api_usage (user_id, usage_date, message_count, token_count)
+        VALUES (#{userId}, #{usageDate}, #{messageCount}, #{tokenCount})
+    </insert>
+
+    <!-- 사용량 업데이트 -->
+    <update id="updateUsage">
+        UPDATE user_api_usage
+        SET message_count = #{messageCount},
+            token_count = #{tokenCount}
+        WHERE user_id = #{userId}
+          AND usage_date = #{usageDate}
+    </update>
+
+    <!-- 사용량 증가 (INSERT ... ON DUPLICATE KEY UPDATE) -->
+    <insert id="incrementUsage">
+        INSERT INTO user_api_usage (user_id, usage_date, message_count, token_count)
+        VALUES (#{userId}, #{usageDate}, #{messageIncrement}, #{tokenIncrement})
+        ON DUPLICATE KEY UPDATE
+            message_count = message_count + #{messageIncrement},
+            token_count = token_count + #{tokenIncrement}
+    </insert>
+
+</mapper>
