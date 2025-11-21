@@ -1,0 +1,56 @@
+spring:
+  application:
+    name: gemini-service
+
+  threads:
+    virtual:
+      enabled: true
+
+  datasource:
+    # Reads DB_URL from Render, or defaults to localhost for your PC
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME} # We will set this in Render
+    password: ${MAIL_PASSWORD} # We will set this in Render
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
+mybatis:
+  mapper-locations: classpath:mapper/**/*.xml
+  type-aliases-package: com.example.demo.model
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+server:
+  port: 8080
+
+logging:
+  level:
+    com.example.demo.mapper: DEBUG
+
+jwt:
+  secret: ${JWT_SECRET} # We will set this in Render
+  expiration: 86400000
+
+app:
+  # Allow the frontend to connect (we will update this when you deploy React)
+  frontend-url: ${FRONTEND_URL:http://localhost:3000}
+
+gemini:
+  python-service:
+    # THIS IS THE KEY to connecting Java -> Python
+    url: ${PYTHON_SERVICE_URL:http://localhost:5000/api/chat}
